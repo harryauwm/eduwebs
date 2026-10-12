@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P4 數學大對決：可以被3整除的數</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #FFFCF6;
+      --border-color: #3E3A39;
+      --pink-a: #F2A497;
+      --yellow: #F6D27A;
+      --blue-b: #A8D3E6;
+      --green: #B9DAA5;
+      --red-wrong: #E86A5D;
+      --card-bg: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Zen Maru Gothic', 'jf-openhuninn', sans-serif;
+      color: var(--border-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 960px;
+      background: var(--bg-color);
+      border: 3px solid var(--border-color);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 8px 0 var(--border-color);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* 頂部標題與題目 */
+    .header-section {
+      text-align: center;
+      background: #FFF;
+      border: 3px solid var(--border-color);
+      border-radius: 20px;
+      padding: 12px 16px;
+      position: relative;
+    }
+
+    .game-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #7A7571;
+      margin-bottom: 4px;
+    }
+
+    .question-box {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--border-color);
+    }
+
+    .question-hint {
+      font-size: 0.9rem;
+      color: #8C857B;
+      margin-top: 2px;
+    }
+
+    .timer-badge {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--yellow);
+      border: 3px solid var(--border-color);
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+
+    /* 頂部獎盃與棒條 PK 區 */
+    .battle-bar-wrapper {
+      background: #FFF;
+      border: 3px solid var(--border-color);
+      border-radius: 20px;
+      padding: 16px 20px 12px;
+      position: relative;
+    }
+
+    .battle-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: 900;
+      font-size: 1.1rem;
+    }
+
+    .player-label-a {
+      color: #D95A47;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .player-label-b {
+      color: #2B7A9E;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bar-container {
+      position: relative;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+
+    .track {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 22px;
+      background: #EFEBE4;
+      border: 3px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .track-a {
+      left: 0;
+      width: calc(50% - 30px);
+    }
+
+    .track-b {
+      right: 0;
+      width: calc(50% - 30px);
+    }
+
+    .bar-fill {
+      height: 100%;
+      transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bar-a {
+      background-color: var(--pink-a);
+      width: 50%;
+      float: left;
+    }
+
+    .bar-b {
+      background-color: var(--blue-b);
+      width: 50%;
+      float: right;
+    }
+
+    .trophy-icon {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      width: 52px;
+      height: 52px;
+      background: var(--yellow);
+      border: 3px solid var(--border-color);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 0 var(--border-color);
+    }
+
+    /* 遊戲對戰主區域 (左右大長方形) */
+    .play-area {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      height: 380px;
+    }
+
+    .player-box {
+      position: relative;
+      background: #FFF;
+      border: 3px solid var(--border-color);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.02);
+    }
+
+    .player-box-a {
+      background: #FFFDFC;
+    }
+
+    .player-box-b {
+      background: #FCFCFF;
+    }
+
+    .box-header-tag {
+      position: absolute;
+      top: 10px;
+      padding: 4px 12px;
+      border: 3px solid var(--border-color);
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 900;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .tag-a {
+      left: 10px;
+      background: var(--pink-a);
+    }
+
+    .tag-b {
+      right: 10px;
+      background: var(--blue-b);
+    }
+
+    /* 氣泡/數字卡片 */
+    .num-card {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      background: var(--card-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--border-color);
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--border-color);
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: transform 0.1s, opacity 0.3s;
+    }
+
+    .num-card:active {
+      transform: scale(0.92);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .fade-out {
+      opacity: 0 !important;
+      transform: scale(0.6) !important;
+    }
+
+    /* 答對/答錯反饋動畫 */
+    .feedback-pop {
+      position: absolute;
+      font-size: 2rem;
+      font-weight: 900;
+      pointer-events: none;
+      z-index: 10;
+      animation: floatUp 0.6s ease-out forwards;
+    }
+
+    .feedback-correct {
+      color: #2E7D32;
+      text-shadow: 0 2px 0 #FFF;
+    }
+
+    .feedback-wrong {
+      color: var(--red-wrong);
+      text-shadow: 0 2px 0 #FFF;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      50% { transform: translate(-50%, -80%) scale(1.3); }
+      100% { opacity: 0; transform: translate(-50%, -110%) scale(1); }
+    }
+
+    /* 背景可愛裝飾元件 */
+    .decor-bg {
+      position: absolute;
+      bottom: 8px;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .decor-a { left: 10px; }
+    .decor-b { right: 10px; }
+
+    /* 按鈕樣式 */
+    .btn {
+      background: var(--yellow);
+      border: 3px solid var(--border-color);
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--border-color);
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--border-color);
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--border-color);
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--border-color);
+    }
+
+    /* 結算彈窗 Modal */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(62, 58, 57, 0.4);
+      backdrop-filter: blur(4px);
+      border-radius: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--bg-color);
+      border: 3px solid var(--border-color);
+      border-radius: 28px;
+      padding: 24px;
+      width: 90%;
+      max-width: 650px;
+      max-height: 85%;
+      overflow-y: auto;
+      box-shadow: 0 10px 0 var(--border-color);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .winner-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .review-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .review-box {
+      background: #FFF;
+      border: 3px solid var(--border-color);
+      border-radius: 16px;
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+
+    .review-box-title {
+      font-weight: 900;
+      font-size: 1rem;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 2px dashed #DDD;
+    }
+
+    .review-item {
+      margin-top: 4px;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .tag-correct {
+      color: #2E7D32;
+      font-weight: 700;
+    }
+
+    .tag-wrong {
+      color: var(--red-wrong);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    
+    <!-- 頂部資訊列 -->
+    <div class="header-section">
+      <div class="game-title">P4 數學對戰小遊戲</div>
+      <div class="question-box">請找出可以被 3 整除的數字！</div>
+      <div class="question-hint">（數字的所有數位加起來能被 3 整除）</div>
+      <div class="timer-badge">⏳ <span id="timer-text">60</span>s</div>
+    </div>
+
+    <!-- 頂部獎盃與進度條 -->
+    <div class="battle-bar-wrapper">
+      <div class="battle-labels">
+        <div class="player-label-a">
+          <span>🐰 A 同學</span>
+          <span id="score-a-text">(50分)</span>
+        </div>
+        <div class="player-label-b">
+          <span id="score-b-text">(50分)</span>
+          <span>🐱 B 同學</span>
+        </div>
+      </div>
+
+      <div class="bar-container">
+        <!-- A 棒條 (左至右) -->
+        <div class="track track-a">
+          <div id="bar-a" class="bar-fill bar-a"></div>
+        </div>
+
+        <!-- 中間獎盃 -->
+        <div class="trophy-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3E3A39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9C6 11.7614 8.23858 14 11 14H13C15.7614 14 18 11.7614 18 9V3H6V9Z" fill="#F6D27A"/>
+            <path d="M6 5H3V7C3 8.65685 4.34315 10 6 10"/>
+            <path d="M18 5H21V7C21 8.65685 19.6569 10 18 10"/>
+            <path d="M12 14V18"/>
+            <path d="M8 21H16"/>
+          </svg>
+        </div>
+
+        <!-- B 棒條 (右至左) -->
+        <div class="track track-b">
+          <div id="bar-b" class="bar-fill bar-b"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 對戰主區域 -->
+    <div class="play-area">
+      <!-- 左邊 A 同學區域 -->
+      <div id="box-a" class="player-box player-box-a">
+        <div class="box-header-tag tag-a">A 同學 區域</div>
+        <svg class="decor-bg decor-a" width="70" height="70" viewBox="0 0 24 24" fill="#F2A497">
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      </div>
+
+      <!-- 右邊 B 同學區域 -->
+      <div id="box-b" class="player-box player-box-b">
+        <div class="box-header-tag tag-b">B 同學 區域</div>
+        <svg class="decor-bg decor-b" width="70" height="70" viewBox="0 0 24 24" fill="#A8D3E6">
+          <rect x="3" y="3" width="18" height="18" rx="4" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- 遊戲結束結算彈窗 -->
+    <div id="modal" class="modal-overlay">
+      <div class="modal-card">
+        <div id="winner-title" class="winner-title">
+          🏆 <span id="winner-text">A 同學勝出！</span>
+        </div>
+
+        <div class="review-grid">
+          <!-- A 同學紀錄 -->
+          <div class="review-box">
+            <div class="review-box-title" style="color: #D95A47;">🐰 A 同學 戰果報告</div>
+            <div class="review-item"><strong>最終分數：</strong><span id="final-score-a">50</span> 分</div>
+            <div class="review-item"><span class="tag-correct">✔ 答對的數字：</span><br><span id="correct-list-a">無</span></div>
+            <div class="review-item" style="margin-top:6px;"><span class="tag-wrong">✖ 答錯的數字：</span><br><span id="wrong-list-a">無</span></div>
+          </div>
+
+          <!-- B 同學紀錄 -->
+          <div class="review-box">
+            <div class="review-box-title" style="color: #2B7A9E;">🐱 B 同學 戰果報告</div>
+            <div class="review-item"><strong>最終分數：</strong><span id="final-score-b">50</span> 分</div>
+            <div class="review-item"><span class="tag-correct">✔ 答對的數字：</span><br><span id="correct-list-b">無</span></div>
+            <div class="review-item" style="margin-top:6px;"><span class="tag-wrong">✖ 答錯的數字：</span><br><span id="wrong-list-b">無</span></div>
+          </div>
+        </div>
+
+        <div>
+          <button class="btn" onclick="startGame()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E3A39" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            再玩一次
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 遊戲數據變數
+    let scoreA = 50;
+    let scoreB = 50;
+    let timeLeft = 60;
+    let gameInterval = null;
+    let spawnInterval = null;
+    let isGameOver = false;
+
+    // 歷史紀錄
+    let historyA = { correct: [], wrong: [] };
+    let historyB = { correct: [], wrong: [] };
+
+    // DOM 元素引用
+    const barA = document.getElementById('bar-a');
+    const barB = document.getElementById('bar-b');
+    const scoreAText = document.getElementById('score-a-text');
+    const scoreBText = document.getElementById('score-b-text');
+    const timerText = document.getElementById('timer-text');
+    const boxA = document.getElementById('box-a');
+    const boxB = document.getElementById('box-b');
+    const modal = document.getElementById('modal');
+
+    // 檢查數字是否能被3整除
+    function isDivisibleBy3(num) {
+      return num % 3 === 0;
+    }
+
+    // 初始化/開始遊戲
+    function startGame() {
+      // 重置數據
+      scoreA = 50;
+      scoreB = 50;
+      timeLeft = 60;
+      isGameOver = false;
+      historyA = { correct: [], wrong: [] };
+      historyB = { correct: [], wrong: [] };
+
+      // 清空區域與彈窗
+      boxA.querySelectorAll('.num-card, .feedback-pop').forEach(el => el.remove());
+      boxB.querySelectorAll('.num-card, .feedback-pop').forEach(el => el.remove());
+      modal.classList.remove('active');
+
+      // 更新介面
+      updateBars();
+      timerText.textContent = timeLeft;
+
+      // 清除舊計時器
+      clearInterval(gameInterval);
+      clearInterval(spawnInterval);
+
+      // 主時間倒數器
+      gameInterval = setInterval(() => {
+        timeLeft--;
+        timerText.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          endGame("時間到的最終戰果");
+        }
+      }, 1000);
+
+      // 氣泡生成循環 (每1.1秒嘗試生成)
+      spawnInterval = setInterval(() => {
+        if (!isGameOver) {
+          spawnCard('A');
+          spawnCard('B');
+        }
+      }, 1100);
+
+      // 立即生成首批卡片
+      spawnCard('A');
+      spawnCard('B');
+    }
+
+    // 更新分數與棒條長度
+    function updateBars() {
+      // 限制分數範圍 0 - 100
+      scoreA = Math.max(0, Math.min(100, scoreA));
+      scoreB = Math.max(0, Math.min(100, scoreB));
+
+      scoreAText.textContent = `(${scoreA}分)`;
+      scoreBText.textContent = `(${scoreB}分)`;
+
+      // 計算棒條百分比 (0分時寬度為0%，100分時貼著中間獎盃100%)
+      barA.style.width = `${scoreA}%`;
+      barB.style.width = `${scoreB}%`;
+
+      // 檢查勝負條件：最先到達 100 分者勝出
+      if (!isGameOver) {
+        if (scoreA >= 100 && scoreB >= 100) {
+          endGame("雙方同時達到100分！平手！");
+        } else if (scoreA >= 100) {
+          endGame("A 同學率先突破 100 分！勝出！");
+        } else if (scoreB >= 100) {
+          endGame("B 同學率先突破 100 分！勝出！");
+        }
+      }
+    }
+
+    // 生成數字卡片
+    function spawnCard(player) {
+      const container = player === 'A' ? boxA : boxB;
+
+      // 避免畫面上積聚過多數字卡片
+      if (container.querySelectorAll('.num-card').length >= 5) return;
+
+      const card = document.createElement('div');
+      card.className = 'num-card';
+
+      // 隨機生成 10-99 之間的數字
+      const num = Math.floor(Math.random() * 90) + 10;
+      card.textContent = num;
+
+      // 隨機顏色裝飾邊框
+      const colors = ['#F2A497', '#F6D27A', '#A8D3E6', '#B9DAA5'];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      card.style.borderColor = '#3E3A39';
+      card.style.backgroundColor = '#FFFFFF';
+
+      // 隨機位置計算 (避免超出長方形邊界)
+      const maxLeft = container.clientWidth - 74;
+      const maxTop = container.clientHeight - 74 - 30; // 留出標籤空間
+      const left = Math.floor(Math.random() * Math.max(20, maxLeft));
+      const top = Math.floor(Math.random() * Math.max(20, maxTop)) + 30;
+
+      card.style.left = `${left}px`;
+      card.style.top = `${top}px`;
+
+      // 4 秒後自動淡出消失
+      const disappearTimer = setTimeout(() => {
+        if (card.parentNode) {
+          card.classList.add('fade-out');
+          setTimeout(() => card.remove(), 300);
+        }
+      }, 4000);
+
+      // 點擊卡片事件
+      card.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        clearTimeout(disappearTimer);
+        const correct = isDivisibleBy3(num);
+
+        // 顯示回饋符號
+        showFeedback(container, left + 32, top + 32, correct);
+
+        // 結算得分與紀錄
+        if (player === 'A') {
+          if (correct) {
+            scoreA += 5;
+            historyA.correct.push(num);
+          } else {
+            scoreA -= 5;
+            historyA.wrong.push(num);
+          }
+        } else {
+          if (correct) {
+            scoreB += 5;
+            historyB.correct.push(num);
+          } else {
+            scoreB -= 5;
+            historyB.wrong.push(num);
+          }
+        }
+
+        updateBars();
+        card.remove();
+      });
+
+      container.appendChild(card);
+    }
+
+    // 顯示綠色"剔"或紅色"X"動畫
+    function showFeedback(container, x, y, isCorrect) {
+      const fb = document.createElement('div');
+      fb.className = `feedback-pop ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`;
+      fb.textContent = isCorrect ? '✔' : '✖';
+      fb.style.left = `${x}px`;
+      fb.style.top = `${y}px`;
+
+      container.appendChild(fb);
+      setTimeout(() => fb.remove(), 600);
+    }
+
+    // 遊戲結束與詳細結果顯示
+    function endGame(reason) {
+      isGameOver = true;
+      clearInterval(gameInterval);
+      clearInterval(spawnInterval);
+
+      // 判定勝負文字
+      const winnerTextEl = document.getElementById('winner-text');
+      if (scoreA > scoreB) {
+        winnerTextEl.textContent = "🎉 A 同學獲勝！";
+      } else if (scoreB > scoreA) {
+        winnerTextEl.textContent = "🎉 B 同學獲勝！";
+      } else {
+        winnerTextEl.textContent = "🤝 勢均力敵！平手！";
+      }
+
+      // 寫入詳細統計
+      document.getElementById('final-score-a').textContent = scoreA;
+      document.getElementById('final-score-b').textContent = scoreB;
+
+      document.getElementById('correct-list-a').textContent = historyA.correct.length > 0 ? historyA.correct.join(', ') : '無';
+      document.getElementById('wrong-list-a').textContent = historyA.wrong.length > 0 ? historyA.wrong.join(', ') : '無';
+
+      document.getElementById('correct-list-b').textContent = historyB.correct.length > 0 ? historyB.correct.join(', ') : '無';
+      document.getElementById('wrong-list-b').textContent = historyB.wrong.length > 0 ? historyB.wrong.join(', ') : '無';
+
+      // 顯示 Modal
+      modal.classList.add('active');
+    }
+
+    // 啟動遊戲
+    window.onload = startGame;
+  </script>
+</body>
+</html>
